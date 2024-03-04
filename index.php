@@ -19,7 +19,7 @@ require_once 'functions.php';
 // Import 'controllers'
 require_once CONTROLLERS . '/MessageHandlerChain.php';
 require_once MESSAGES . '/Start.php';
-require_once MESSAGES . '/Show.php';
+require_once MESSAGES . '/EstateObject.php';
 require_once MESSAGES . '/Filtration.php';
 
 try {
@@ -45,6 +45,7 @@ $chain = new MessageHandlerChain();
 
 // Creating handlers
 $start = new Start($telegram, [$keyboards['base_keyboard']]);
+$object = new EstateObject($telegram, [$keyboards['base_keyboard'], $keyboards['object_type'], $keyboards['object_city'], $keyboards['object_price']]);
 
 $chain->add_handler($start);
 

@@ -1,7 +1,5 @@
 <?php
 
-require_once (CONFIG . '/variables.php');
-
 class Start
 {
     public $telegram;
