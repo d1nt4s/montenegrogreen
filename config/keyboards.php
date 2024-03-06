@@ -17,7 +17,7 @@ return [
         ['text' => $phrases['type_hotel'], 'callback_data' => '6556type_hotel'], 
         ['text' => $phrases['type_land'], 'callback_data' => '6556type_land'], 
         ['text' => $phrases['type_commercy'], 'callback_data' => '6556type_commercy'] ,
-        ['text' => $phrases['next_stage'], 'callback_data' => '6556type_next_stage'] ],
+        ['text' => $phrases['next_stage'], 'callback_data' => '65561type_next_stage'] ],
     ],
 ],
 
@@ -29,11 +29,9 @@ return [
         ['text' => $phrases['city_podgorica'], 'callback_data' => '4732city_podgorica'],
         ['text' => $phrases['city_herzegnovi'], 'callback_data' => '4732city_herzegnovi'],
         ['text' => $phrases['city_sutomore'], 'callback_data' => '4732city_sutomore'],
-        ['text' => $phrases['next_stage'], 'callback_data' => '4732city_next_stage'] ],
+        ['text' => $phrases['next_stage'], 'callback_data' => '47321city_next_stage'] ],
     ],
 ],
-
-
 
 'object_price' => [
     'inline_keyboard' => [

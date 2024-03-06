@@ -35,7 +35,7 @@ class Start
         $this->telegram->sendMessage([
             'chat_id' => $chat_id,
             'text'=> $this->hello,
-            'reply_markup' => json_encode($this->keyboards[0]),
+            'reply_markup' => json_encode($this->keyboards['base_keyboard']),
         ]);
     }
 

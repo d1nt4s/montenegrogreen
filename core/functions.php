@@ -8,7 +8,7 @@ function print_arr($data) : void
 function debug($data, $log = true) : void
 {
     if ($log) {
-        file_put_contents(__DIR__ . '/logs.txt', print_r($data, true), FILE_APPEND);
+        file_put_contents(ROOT. '/logs.log', print_r($data, true), FILE_APPEND);
     } else {
         echo "<pre>" . print_r($data, true) . "</pre>";
     }

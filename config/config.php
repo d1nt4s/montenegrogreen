@@ -9,6 +9,10 @@ const BOSS_CHAT_ID = '387634516';
 
 define("ROOT", dirname(__DIR__));
 define("CONFIG", ROOT . '/config');
+define("CORE", ROOT . '/core');
+define("CLASSES", CORE . '/classes');
 define("CONTROLLERS", ROOT . '/controllers');
 define("MESSAGES", CONTROLLERS . '/messages');
 define("CALLBACK", CONTROLLERS . '/callback');
+define("DATA", ROOT . '/data');
+define("USERS", DATA . '/users');

@@ -13,15 +13,19 @@ class MessageHandlerChain
         array_push($this->handlers, $handler);
     }
 
-    function getTextChatID($update)
+    function getUpdateParameters($update)
     {
         if (isset($update['callback_query'])) {
             return [
+                'isCallback' => true,
                 'chat_id' => $update['callback_query']['message']['chat']['id'],
                 'message_text' => $update['callback_query']['data'],
+                'id' => $update['callback_query']['id'],
+                'message_id' => $update['callback_query']['message']['message_id'],
             ];
         } elseif (isset($update['message']['text'])) {
             return [
+                'isCallback' => false,
                 'chat_id' => $update['message']['chat']['id'],
                 'message_text' => $update['message']['text'],
             ];
@@ -32,14 +36,15 @@ class MessageHandlerChain
     function process_message($update)
     {
 
-        $text_chat_id = $this->getTextChatID($update);
+        $update_parameters = $this->getUpdateParameters($update);
 
         foreach ($this->handlers as $handler) {
-            if ($handler->can_handle($text_chat_id['message_text'])) {
-                $handler->handle($text_chat_id['chat_id']);
+            if ($handler->can_handle($update_parameters)) {
+                $handler->handle($update_parameters['chat_id']);
                 break;
             }
         }
+
     }
 
 
