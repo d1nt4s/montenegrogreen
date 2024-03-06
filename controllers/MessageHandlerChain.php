@@ -37,6 +37,7 @@ class MessageHandlerChain
     {
 
         $update_parameters = $this->getUpdateParameters($update);
+        debug($update_parameters);
 
         foreach ($this->handlers as $handler) {
             if ($handler->can_handle($update_parameters)) {
