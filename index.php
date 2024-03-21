@@ -10,57 +10,70 @@ if (file_exists('errors.log'))
 if (file_exists('logs.log'))
     unlink('logs.log');
 
-require __DIR__.'/vendor/autoload.php';
 require_once __DIR__ . '/config/config.php';
-$phrases = require_once CONFIG . '/phrases.php';
-$keyboards = require_once CONFIG . '/keyboards.php';
 require_once CORE . '/functions.php';
 
-// Import 'controllers'
-require_once CONTROLLERS . '/MessageHandlerChain.php';
-require_once MESSAGES . '/Start.php';
-require_once MESSAGES . '/EstateObject.php';
-require_once MESSAGES . '/Filtration.php';
+use \Dantes\Montegreen\Useful\Db;
+use \Dantes\Montegreen\MessageHandlerChain;
+use \Dantes\Montegreen\Commands\Start;
+use \Dantes\Montegreen\Commands\Filtration;
+use \Dantes\Montegreen\Commands\AddEstate;
 
-// try {
-//     $conn = new PDO("mysql:host=localhost;dbname=montenegrogreen", "jacky", "Re8dfg90745s");
-// } catch (PDOException $e) {
-//     error_log($e->getMessage() . PHP_EOL, 3, __DIR__ . '/errors.log');
-// }
+use \Dantes\Montegreen\StatusHandler;
+use \Dantes\Montegreen\Statuses\Estate\Input\InputEstate;
 
-require CLASSES . '/Db.php';
+require __DIR__.'/vendor/autoload.php';
 
-$db_config = require CONFIG . '/db.php';
-$db = (Db::getInstance())->getConnection($db_config);
+try {
+    $db_config = require CONFIG . '/db.php';
+    $db = (Db::getInstance())->getConnection($db_config);
 
-// file_put_contents(ROOT . '/logs.txt', CONFIG . PHP_EOL, FILE_APPEND);
+    if (!$db) {
+        throw new Exception("$db нет! БД не подключилась!");
+    }
 
-$telegram = new \Telegram\Bot\Api(TOKEN);
-$update = $telegram->getWebhookUpdate();
+    $telegram = new \Telegram\Bot\Api(TOKEN);
+    $update = $telegram->getWebhookUpdate();
 
-if (!$update) {
-    die;
+    if (!$update) {
+        throw new Exception("$update не пришел!");
+    }
+
+} catch (Exception $e) {
+    error_log($e->getMessage() . PHP_EOL, 3, $GLOBALS['paths']['root'] . '/errors.log');
 }
 
-// $text = $update['message']['text'] ?? '';
+/* РАБОТАЮЩАЯ ЧАСТЬ */
 
-// Creating handler manager
-$chain = new MessageHandlerChain();
+$GLOBALS['restart_bot'] = false;
 
-// Creating handlers
-$start = new Start($telegram, ['base_keyboard' => $keyboards['base_keyboard']]);
-$object = new EstateObject($telegram,[
-    'base_keyboard' => $keyboards['base_keyboard'],
-    'object_type' =>  $keyboards['object_type'],
-    'object_city' => $keyboards['object_city'],
-    'object_price' => $keyboards['object_price']],
-    $db,
-);
+do {
 
-$chain->add_handler($start);
-$chain->add_handler($object);
+    // Создаем менеджер обработчик статусов
+    if (StatusHandler::isStatusSet($db, $update)) {
+        $status_manager = new StatusHandler($db, $update);
 
-$chain->process_message($update);
+        // Создаем обработчики статусов
+        $input_estate = new InputEstate($telegram, $db);
+
+        $status_manager->addStatusHandler($input_estate);
+        $status_manager->startStatusHandler($update);
+        die;
+    }
 
 
-die;
+    // Создаем менеджер обработчиков сообщений и коллбэков
+    $chain = new MessageHandlerChain();
+
+    // Создаем обработчики
+    $start = new Start($telegram);
+    $add_estate = new AddEstate($telegram, $db);
+    $filtration = new Filtration($telegram, $db);
+
+    $chain->add_handler($start);
+    $chain->add_handler($filtration);
+    $chain->add_handler($add_estate);
+
+    $chain->process_message($update);
+
+} while ($GLOBALS['restart_bot'] == true);

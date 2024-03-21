@@ -16,3 +16,9 @@ define("MESSAGES", CONTROLLERS . '/messages');
 define("CALLBACK", CONTROLLERS . '/callback');
 define("DATA", ROOT . '/data');
 define("USERS", DATA . '/users');
+
+$GLOBALS['paths'] = [
+    'root' => dirname(__DIR__), 
+    'config' => dirname(__DIR__) . '/config',
+    'keyboards' => dirname(__DIR__) . '/keyboards',
+];

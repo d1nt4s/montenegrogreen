@@ -1,0 +1,6 @@
+vendor/*
+composer.lock
+composer.phar
+montenegrogreen.code-workspace
+.vscode
+!vendor/d1ntes/*
