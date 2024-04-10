@@ -22,7 +22,15 @@ class Type implements InputInterface
 
     public function put($parameters, $object_id)
     {
+        if (!$parameters['isCallback']) {
+            $this->telegram->sendMessage([
+                'chat_id' => $parameters['chat_id'],
+                'text'=>  "Выберите тип из предоставленных.",
+            ]);
+            return false; 
+        }
         $this->db->query("UPDATE estate_objects SET type=? WHERE id=?", [$parameters['message_text'], $object_id]);
+        return true;
     }
 
 }

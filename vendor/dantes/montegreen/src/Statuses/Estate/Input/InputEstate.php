@@ -44,7 +44,7 @@ class InputEstate
         $GLOBALS['restart_bot'] = false;
 
         if ($parameters['message_text'] === '/stop') {
-            $this->emergencyCloseStatus($parameters['chat_id']);
+            $this->closeStatus($parameters['chat_id'], "Выход из статуса загрузки обьекта. Все функции бота снова доступны.", true);
         } else {
             $this->telegram->sendMessage([
                 'chat_id' => $parameters['chat_id'],
@@ -60,53 +60,53 @@ class InputEstate
                 $this->changeStatusStage('put_name_ask_type', $parameters['chat_id']);
                 break;
             case ('put_name_ask_type'):
-                $this->name->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->name->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->type->ask($parameters);
                 $this->changeStatusStage('put_type_ask_city', $parameters['chat_id']);
                 break;
             case ('put_type_ask_city'):
-                $this->type->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->type->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->city->ask($parameters);
                 $this->changeStatusStage('put_city_ask_housesize', $parameters['chat_id']);
                 break;
             case ('put_city_ask_housesize'):
-                $this->city->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->city->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->house_size->ask($parameters);
                 $this->changeStatusStage('put_housesize_ask_regionsize', $parameters['chat_id']);
                 break;
             case ('put_housesize_ask_regionsize'):
-                $this->house_size->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->house_size->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->region_size->ask($parameters);
                 $this->changeStatusStage('put_regionsize_ask_price', $parameters['chat_id']);
                 break;
             case ('put_regionsize_ask_price'):
-                $this->region_size->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->region_size->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->price->ask($parameters);
                 $this->changeStatusStage('put_price_ask_rooms', $parameters['chat_id']);
                 break;
             case ('put_price_ask_rooms'):
-                $this->price->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->price->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->rooms->ask($parameters);
                 $this->changeStatusStage('put_rooms_ask_contacts', $parameters['chat_id']);
                 break;
             case ('put_rooms_ask_contacts'):
-                $this->rooms->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->rooms->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->contacts->ask($parameters);
                 $this->changeStatusStage('put_contacts_ask_link', $parameters['chat_id']);
                 break;
             case ('put_contacts_ask_link'):
-                $this->contacts->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->contacts->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->link->ask($parameters);
                 $this->changeStatusStage('put_link_ask_description', $parameters['chat_id']);
                 break;
             case ('put_link_ask_description'):
-                $this->link->put($parameters, $this->getObjectId($parameters['chat_id']));
+                if (!$this->link->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
                 $this->description->ask($parameters);
                 $this->changeStatusStage('put_description_finish', $parameters['chat_id']);
                 break;
             case ('put_description_finish'):
-                $this->description->put($parameters, $this->getObjectId($parameters['chat_id']));
-                $this->closeStatus($parameters['chat_id']);
+                if (!$this->description->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
+                $this->closeStatus($parameters['chat_id'], "Спасибо! Обьект успешно загружен в базу данных. После проверки он будет доступен в боте. Функции бота снова доступны.", false);
                 break;
         }
 
@@ -118,40 +118,28 @@ class InputEstate
         $object_id = $this->db->query("SELECT LAST_INSERT_ID()")->find()['LAST_INSERT_ID()'];
         $this->db->query("UPDATE input_estate SET object_id=? WHERE user_id=?", [$object_id, $parameters['chat_id']]);
     }
-    function closeStatus($chat_id)
+
+    function closeStatus($chat_id, $message_to_user, $is_emergency)
     {
         $this->telegram->sendMessage([
             'chat_id' => $chat_id,
-            'text'=> 'Спасибо! Обьект успешно загружен в базу данных. После проверки он будет доступен в боте. Функции бота снова доступны.',
+            'text'=> $message_to_user,
         ]);
 
-        // ЗАКРЫТИЕ ВИДИМОСТИ ОБЬЕКТА И ОТПРАВКА В ОТДЕЛ МОДЕРАЦИИ
-        $this->db->query("UPDATE estate_objects SET display=? WHERE id=?", [0, $this->getObjectId($chat_id)]);
-        $this->moderation->informModerator($this->getObjectId($chat_id));
+        if ($is_emergency) {
+            // УДАЛЕНИЕ НЕДОВВЕДЕННОГО ОБЬЕКТА
+            $this->db->query("DELETE FROM estate_objects WHERE id=?", [$this->getObjectId($chat_id)]);
+        } else {
+            // ЗАКРЫТИЕ ВИДИМОСТИ ОБЬЕКТА И ОТПРАВКА В ОТДЕЛ МОДЕРАЦИИ
+            $this->db->query("UPDATE estate_objects SET display=? WHERE id=?", [0, $this->getObjectId($chat_id)]);
+            $this->moderation->informModerator($this->getObjectId($chat_id));
+        }
 
         // УДАЛЕНИЕ ЗАПИСИ ИЗ input_estate
         $this->db->query("DELETE FROM input_estate WHERE user_id=?", [$chat_id]);
 
         // ЗАКРЫТИЕ СТАТУСА ЗАГРУЗКИ ОБЬЕКТА
-        $this->db->query("UPDATE users SET status=? WHERE id=?", ['nothing', $chat_id]); 
-        
-    }
-
-    function emergencyCloseStatus($chat_id)
-    {
-        $this->telegram->sendMessage([
-            'chat_id' => $chat_id,
-            'text'=> 'Выход из статуса загрузки обьекта. Все функции бота снова доступны.',
-        ]);
-
-        // УДАЛЕНИЕ НЕДОВВЕДЕННОГО ОБЬЕКТА
-        $this->db->query("DELETE FROM estate_objects WHERE id=?", [$this->getObjectId($chat_id)]);
-
-        // УДАЛЕНИЕ ЗАПИСИ ИЗ input_estate
-        $this->db->query("DELETE FROM input_estate WHERE user_id=?", [$chat_id]);
-
-        // ЗАКРЫТИЕ СТАТУСА ЗАГРУЗКИ ОБЬЕКТА
-        $this->db->query("UPDATE users SET status=? WHERE id=?", ['nothing', $chat_id]); 
+        $this->db->query("UPDATE users SET status=? WHERE id=?", ['nothing', $chat_id]);         
     }
 
     function getStatusStage($chat_id)
