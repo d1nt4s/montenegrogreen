@@ -4,15 +4,15 @@ namespace Dantes\Montegreen\Statuses\Estate\Input;
 
 class City implements InputInterface
 {
-
+    private $instruction_message = <<<EOD
+    Выберите город обьекта. Если ваш поселок/город отсутствуют в списке, то выберите наиближайший к нему и укажите точное местоположение в описании.
+    EOD;
     function __construct(private $telegram, private $db, private $keyboards) {}
     public function ask($parameters)
     {
-        $instruction_message = "Выберите город обьекта.";
-
         $this->telegram->sendMessage([
             'chat_id' => $parameters['chat_id'],
-            'text'=>  $instruction_message,
+            'text'=>  $this->instruction_message,
             'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($this->keyboards['entering_object_city']),
         ]);
     }

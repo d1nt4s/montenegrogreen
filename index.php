@@ -18,6 +18,7 @@ use \Dantes\Montegreen\MessageHandlerChain;
 use \Dantes\Montegreen\Commands\Start;
 use \Dantes\Montegreen\Commands\Filtration;
 use \Dantes\Montegreen\Commands\AddEstate;
+use \Dantes\Montegreen\Commands\ManageEstate;
 
 use \Dantes\Montegreen\StatusHandler;
 use \Dantes\Montegreen\Statuses\Estate\Input\InputEstate;
@@ -69,10 +70,12 @@ do {
     $start = new Start($telegram);
     $add_estate = new AddEstate($telegram, $db);
     $filtration = new Filtration($telegram, $db);
+    $manage_estate = new ManageEstate($telegram, $db);
 
     $chain->add_handler($start);
     $chain->add_handler($filtration);
     $chain->add_handler($add_estate);
+    $chain->add_handler($manage_estate);
 
     $chain->process_message($update);
 

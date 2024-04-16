@@ -37,8 +37,16 @@ return [
     'price_350-infinity' => '350k€ - ∞ ',
     // 'price_value_your' => 'Свой диапазон',
 
+    // ADD_ESTATE
     'add_object_continue' => 'Продолжить',
     'add_object' => 'Добавить обьект',
     'buy_object' => 'Купить 5 обьектов за 2.99$',
     'add_one_more_object' => 'Добавить еще обьект',
+
+    // MANAGE_ESTATE
+    'manage_estate_edit' => "Редактировать",
+    'manage_estate_delete' => "Удалить",
+    // 'manage_estate_sure' => "Ваш обьект удалиться вместе со всей информацией. Вы уверены?",
+    'manage_estate_yes' => "Да",
+    'manage_estate_no' => "Нет, вернутся в меню.",
 ];
