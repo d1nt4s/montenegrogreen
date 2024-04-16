@@ -7,16 +7,7 @@ class InputEstate
     public $status_handler_name = "input";
     private $telegram;
     private $db;
-    protected $name;
-    protected $type;
-    protected $city;
-    protected $house_size;
-    protected $region_size;
-    protected $price;
-    protected $rooms;
-    protected $contacts;
-    protected $link;
-    protected $description;
+    protected $estate_facilities = [];
     protected $moderation;
     function __construct($telegram, $db)
     {
@@ -25,16 +16,18 @@ class InputEstate
         require_once $GLOBALS['paths']['config'] . '/include.php';
         $keyboards = get_keyboard('input_estate');
 
-        $this->name = new Name($telegram, $db);
-        $this->type = new Type($telegram, $db, $keyboards);
-        $this->city = new City($telegram, $db, $keyboards);
-        $this->house_size = new HouseSize($telegram, $db);
-        $this->region_size = new RegionSize($telegram, $db);
-        $this->price = new Price($telegram, $db);
-        $this->rooms = new Rooms($telegram, $db);
-        $this->contacts = new Contacts($telegram, $db);
-        $this->link = new Link($telegram, $db);
-        $this->description = new Description($telegram, $db);
+        $this->estate_facilities = [
+            'name' => new Name($telegram, $db), 
+            'type' => new Type($telegram, $db, $keyboards),
+            'city' => new City($telegram, $db, $keyboards),
+            'house_size' => new HouseSize($telegram, $db, $keyboards),
+            'region_size' => new RegionSize($telegram, $db, $keyboards),
+            'price' => new Price($telegram, $db),
+            'rooms' => new Rooms($telegram, $db, $keyboards),
+            'contacts' => new Contacts($telegram, $db),
+            'link' => new Link($telegram, $db, $keyboards),
+            'description' => new Description($telegram, $db),
+        ];
 
         $this->moderation = new Moderation($telegram, $db, $keyboards);
     }
@@ -43,73 +36,70 @@ class InputEstate
     {
         $GLOBALS['restart_bot'] = false;
 
+        // Экстренный выход из статуса по требованию пользователя или напоминание ему об нахождении в состоянии статуса
         if ($parameters['message_text'] === '/stop') {
             $this->closeStatus($parameters['chat_id'], "Выход из статуса загрузки обьекта. Все функции бота снова доступны.", true);
         } else {
             $this->telegram->sendMessage([
                 'chat_id' => $parameters['chat_id'],
-                'text'=> 'Статус загрузки обьекта! Для прерывания введите /stop, место при этом не потратиться, однако введенные данные не запомняться!',
+                'text'=> 'Статус загрузки обьекта! Для прерывания введите /stop, место при этом не потратиться, однако введенные данные не запомняться! За помощью обращайтесь @d1ntes.',
             ]);
         }
 
         switch ($this->getStatusStage($parameters['chat_id']))
         {
             case ('create_ask_name'):
-                $this->createEstateObject($parameters);
-                $this->name->ask($parameters);
-                $this->changeStatusStage('put_name_ask_type', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'name', 'put' => ""], true, false, 'put_name_ask_type');
                 break;
             case ('put_name_ask_type'):
-                if (!$this->name->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->type->ask($parameters);
-                $this->changeStatusStage('put_type_ask_city', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'type', 'put' => 'name'], false, false, 'put_type_ask_city');
                 break;
             case ('put_type_ask_city'):
-                if (!$this->type->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->city->ask($parameters);
-                $this->changeStatusStage('put_city_ask_housesize', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'city', 'put' => 'type'], false, false, 'put_city_ask_housesize');
                 break;
             case ('put_city_ask_housesize'):
-                if (!$this->city->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->house_size->ask($parameters);
-                $this->changeStatusStage('put_housesize_ask_regionsize', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'house_size', 'put' => 'city'], false, false, 'put_housesize_ask_regionsize');
                 break;
             case ('put_housesize_ask_regionsize'):
-                if (!$this->house_size->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->region_size->ask($parameters);
-                $this->changeStatusStage('put_regionsize_ask_price', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'region_size', 'put' => 'house_size'], false, false, 'put_regionsize_ask_price');
                 break;
             case ('put_regionsize_ask_price'):
-                if (!$this->region_size->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->price->ask($parameters);
-                $this->changeStatusStage('put_price_ask_rooms', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'price', 'put' => 'region_size'], false, false, 'put_price_ask_rooms');
                 break;
             case ('put_price_ask_rooms'):
-                if (!$this->price->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->rooms->ask($parameters);
-                $this->changeStatusStage('put_rooms_ask_contacts', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'rooms', 'put' => 'price'], false, false, 'put_rooms_ask_contacts');
                 break;
             case ('put_rooms_ask_contacts'):
-                if (!$this->rooms->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->contacts->ask($parameters);
-                $this->changeStatusStage('put_contacts_ask_link', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'contacts', 'put' => 'rooms'], false, false, 'put_contacts_ask_link');
                 break;
             case ('put_contacts_ask_link'):
-                if (!$this->contacts->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->link->ask($parameters);
-                $this->changeStatusStage('put_link_ask_description', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'link', 'put' => 'contacts'], false, false, 'put_link_ask_description');
                 break;
             case ('put_link_ask_description'):
-                if (!$this->link->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->description->ask($parameters);
-                $this->changeStatusStage('put_description_finish', $parameters['chat_id']);
+                $this->performStage($parameters, ['ask' => 'description', 'put' => 'link'], false, false, 'put_description_finish');
                 break;
             case ('put_description_finish'):
-                if (!$this->description->put($parameters, $this->getObjectId($parameters['chat_id']))) { break; }
-                $this->closeStatus($parameters['chat_id'], "Спасибо! Обьект успешно загружен в базу данных. После проверки он будет доступен в боте. Функции бота снова доступны.", false);
+                $this->performStage($parameters, ['ask' => "", 'put' => 'description'], false, true, "");
                 break;
         }
 
+    }
+
+    function performStage($parameters, $stage_members, $isFirstStage, $isLastStage, $nextStage)
+    {
+        if ($isFirstStage) {
+            $this->createEstateObject($parameters);
+            $this->estate_facilities[$stage_members['ask']]->ask($parameters);
+        } else if ($isLastStage) {
+            if (!$this->estate_facilities[$stage_members['put']]->put($parameters, $this->getObjectId($parameters['chat_id']))) { return; }
+            $this->closeStatus($parameters['chat_id'], "Спасибо! Обьект успешно загружен в базу данных. После проверки он будет доступен в боте. Функции бота снова доступны.", false);
+            return;
+        } else {
+            if (!$this->estate_facilities[$stage_members['put']]->put($parameters, $this->getObjectId($parameters['chat_id']))) { return; }
+            $this->estate_facilities[$stage_members['ask']]->ask($parameters);
+        }
+
+        $this->changeStatusStage($nextStage, $parameters['chat_id']);
     }
 
     function createEstateObject($parameters)

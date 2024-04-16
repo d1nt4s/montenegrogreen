@@ -30,5 +30,11 @@ return [
     ],
 ],
 
+'skip' => [
+    'inline_keyboard' => [
+        [['text' => "Пропустить", 'callback_data' => 'skip_facility']], 
+    ],
+]
+
 
 ];

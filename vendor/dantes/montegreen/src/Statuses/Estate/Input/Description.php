@@ -8,7 +8,7 @@ class Description implements InputInterface
     function __construct(private $telegram, private $db) {}
     public function ask($parameters)
     {
-        $instruction_message = "Напишите описание обьекта";
+        $instruction_message = "Напишите описание обьекта, чтобы заинтересовать пользователей. Если описание отсутствует, напишите, что подробности расскажете по телефону или в телеграмме.";
 
         $this->telegram->sendMessage([
             'chat_id' => $parameters['chat_id'],
