@@ -2,19 +2,19 @@
 
 return [
 
-    'menu' => [
-        'inline_keyboard' => [
-            [['text' => $phrases['manage_estate_edit'], 'callback_data' => 'MANAGE_ESTATE_EDIT']],
-            [['text' => $phrases['manage_estate_delete'], 'callback_data' => 'MANAGE_ESTATE_DELETE']],
-        ],
-    ],
+    // 'menu' => [
+    //     'inline_keyboard' => [
+    //         [['text' => $phrases['manage_estate_edit'], 'callback_data' => 'MANAGE_ESTATE_EDIT']],
+    //         [['text' => $phrases['manage_estate_delete'], 'callback_data' => 'MANAGE_ESTATE_DELETE']],
+    //     ],
+    // ],
 
-    'attention' => [
-        'inline_keyboard' => [
-            [['text' => $phrases['manage_estate_yes'], 'callback_data' => 'MANAGE_ESTATE_DELETE_OBJECT']],
-            [['text' => $phrases['manage_estate_no'], 'callback_data' => 'MANAGE_ESTATE_LEAVE_OBJECT']],
-        ],
-    ],
+    // 'attention' => [
+    //     'inline_keyboard' => [
+    //         [['text' => $phrases['manage_estate_yes'], 'callback_data' => 'MANAGE_ESTATE_DELETE_OBJECT']],
+    //         [['text' => $phrases['manage_estate_no'], 'callback_data' => 'MANAGE_ESTATE_LEAVE_OBJECT']],
+    //     ],
+    // ],
 
     // 'instruction' => [
     //     'inline_keyboard' => [

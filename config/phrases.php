@@ -49,4 +49,22 @@ return [
     // 'manage_estate_sure' => "Ваш обьект удалиться вместе со всей информацией. Вы уверены?",
     'manage_estate_yes' => "Да",
     'manage_estate_no' => "Нет, вернутся в меню.",
+
+    // EDIT_ESTATE
+
+    'edit_estate_change_facility' => "Изменить характеристику обьекта",
+    'edit_estate_hide_object' => "Скрыть обьект с витрины",
+    'edit_estate_delete_object' => "Удалить обьект",
+
+    'edit_estate_change_name' => "Имя обьекта",
+    'edit_estate_change_type' => "Тип обьекта",
+    'edit_estate_change_city' => "Город обьекта",
+    'edit_estate_change_housesize' => "Размер обьекта",
+    'edit_estate_change_regionsize' => "Размер территории обьекта",
+    'edit_estate_change_price' => "Цену обьекта",
+    'edit_estate_change_rooms' => "Количество комнат обьекта",
+    'edit_estate_change_contacts' => "Контакты, указанные у обьекта",
+    'edit_estate_change_link' => "Ссылку на обьект",
+    'edit_estate_change_description' => "Описание обьекта",
+
 ];

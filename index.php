@@ -22,6 +22,7 @@ use \Dantes\Montegreen\Commands\ManageEstate;
 
 use \Dantes\Montegreen\StatusHandler;
 use \Dantes\Montegreen\Statuses\Estate\Input\InputEstate;
+use \Dantes\Montegreen\Statuses\Estate\Edit\EditEstate;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -56,8 +57,10 @@ do {
 
         // Создаем обработчики статусов
         $input_estate = new InputEstate($telegram, $db);
+        $edit_estate = new EditEstate($telegram, $db);
 
         $status_manager->addStatusHandler($input_estate);
+        $status_manager->addStatusHandler($edit_estate);
         $status_manager->startStatusHandler($update);
         die;
     }
