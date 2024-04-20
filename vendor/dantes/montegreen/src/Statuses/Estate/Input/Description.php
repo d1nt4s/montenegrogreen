@@ -5,7 +5,7 @@ namespace Dantes\Montegreen\Statuses\Estate\Input;
 class Description implements InputInterface
 {
 
-    function __construct(private $telegram, private $db) {}
+    function __construct(private $telegram, private $db, private $keyboards) {}
     public function ask($parameters)
     {
         $instruction_message = "Напишите описание обьекта, чтобы заинтересовать пользователей. Если описание отсутствует, напишите, что подробности расскажете по телефону или в телеграмме.";

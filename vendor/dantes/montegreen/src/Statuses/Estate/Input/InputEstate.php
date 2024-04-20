@@ -17,16 +17,16 @@ class InputEstate
         $keyboards = get_keyboard('input_estate');
 
         $this->estate_facilities = [
-            'name' => new Name($telegram, $db), 
+            'name' => new Name($telegram, $db, $keyboards), 
             'type' => new Type($telegram, $db, $keyboards),
             'city' => new City($telegram, $db, $keyboards),
             'house_size' => new HouseSize($telegram, $db, $keyboards),
             'region_size' => new RegionSize($telegram, $db, $keyboards),
-            'price' => new Price($telegram, $db),
+            'price' => new Price($telegram, $db, $keyboards),
             'rooms' => new Rooms($telegram, $db, $keyboards),
-            'contacts' => new Contacts($telegram, $db),
+            'contacts' => new Contacts($telegram, $db, $keyboards),
             'link' => new Link($telegram, $db, $keyboards),
-            'description' => new Description($telegram, $db),
+            'description' => new Description($telegram, $db, $keyboards),
         ];
 
         $this->moderation = new Moderation($telegram, $db, $keyboards);

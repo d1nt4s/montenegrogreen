@@ -5,7 +5,7 @@ namespace Dantes\Montegreen\Statuses\Estate\Input;
 class Contacts implements InputInterface
 {
 
-    function __construct(private $telegram, private $db) {}
+    function __construct(private $telegram, private $db, private $keyboards) {}
     public function ask($parameters)
     {
         $instruction_message = "Введите свои контакты, по которым клиент сможет вас найти. Рекомендуется номер телефона и telegram.";

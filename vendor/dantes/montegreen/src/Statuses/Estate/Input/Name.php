@@ -4,7 +4,7 @@ namespace Dantes\Montegreen\Statuses\Estate\Input;
 
 class Name implements InputInterface
 {
-    function __construct(private $telegram, private $db) {}
+    function __construct(private $telegram, private $db, private $keyboards) {}
     public function ask($parameters)
     {
         $instruction_message = "Введите название обьекта видное всем пользователям для быстрого поиска вашего обьекта, а также для легкой идентификацией клиентом. Максимальное кол-во символов 31. Нецензурная лексика проверку не пройдет.";

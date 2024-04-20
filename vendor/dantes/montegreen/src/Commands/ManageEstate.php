@@ -8,7 +8,7 @@ class ManageEstate
 {
     private $telegram;
     private $db;
-    public $keyboards;
+    // public $keyboards;
     private $how_to_manage = <<<EOD
     Это пункт управления вашими обьектами!
     Здесь вы можете посмотреть ваши обьекты, а также редактировать и удалять их.
@@ -22,33 +22,35 @@ class ManageEstate
         $this->telegram = $telegram;
         $this->db = $db;
 
-        require_once $GLOBALS['paths']['config'] . '/include.php';
-        $this->keyboards = get_keyboard('manage_estate');
+        // require_once $GLOBALS['paths']['config'] . '/include.php';
+        // $this->keyboards = get_keyboard('manage_estate');
     }
 
     function can_handle($parameters)
     {
         /* Показываем пользователю краткую информацию по его обьектам, а также кол-во его свободных мест. */
         if ($parameters['message_text'] == '/manage' || $parameters['message_text'] == 'Управлять своими обьектами') {
-            $this->instruction($parameters);
-        /* Меню управления отдельным обьектом */
+            $this->instructUser($parameters);
+        /* Переходим в статус редактирования отдельного обьекта => \Statuses\Estate\Edit\EditEstate.php */
         } elseif (str_contains($parameters['message_text'], '/manage_')) {
-            if ($this->input_validation($parameters)) {
-                $this->showEstateMenu($parameters);
+            if ($this->validateUserQuery($parameters)) {
+                $this->set_status($parameters, 'edit', function($parameters) {
+
+                    $object_id = substr($parameters['message_text'], 8);
+                    $this->db->query("INSERT edit_estate (user_id, action, object_id) VALUES (?, ?, ?)", [$parameters['chat_id'], "menu", $object_id]);
+
+                    $this->telegram->sendMessage([
+                        'chat_id' => $parameters['chat_id'],
+                        'text'=> "Внимание! Вы находитесь в статусе редактирования обьекта. Прочие функции бота недоступны. Для возвращения в обычный режим, пожалуйста, завершите редактирование обьекта!",
+                    ]);
+                });
             }
-        /* Выбор варианта 'Редактировать' из меню обьекта */
-        } elseif (str_contains($parameters['message_text'], 'MANAGE_ESTATE_EDIT')) {
-
-        /* Выбор варианта 'Удалить' из меню обьекта */
-        } elseif (str_contains($parameters['message_text'], 'MANAGE_ESTATE_DELETE')) {
-
         }
-        
     }
 
     function handle($parameters) {}
 
-    function instruction($parameters)
+    function instructUser($parameters)
     {
         // ПРОВЕРИТЬ ЕСТЬ ЛИ ПОЛЬЗОВАТЕЛЬ В БАЗЕ, И ЕСЛИ НЕТ СОЗДАТЬ ЗАПИСЬ О НЕМ
         $this->createNewUser($parameters);
@@ -70,7 +72,7 @@ class ManageEstate
         }
     }
 
-    function input_validation($parameters)
+    function validateUserQuery($parameters)
     {
         // Проверка, что полученная команда совпадает по размеру, что ее аргумент число, что этим обьектом владеет пользователь
         if (strlen($parameters['message_text']) > 16 || strlen($parameters['message_text']) < 9) {
@@ -110,13 +112,30 @@ class ManageEstate
         }
     }
 
-    function showEstateMenu($parameters)
+    function set_status($parameters, $status_name, $status_action)
     {
-        $this->telegram->sendMessage([
-            'chat_id' => $parameters['chat_id'],
-            'text'=> "Что вы хотите сделать с обьектом?",
-            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($this->keyboards['menu']),
-        ]); 
+        /* Включаем status редактирования обьекта */
+        try {
+            /* Проверяем, что пользователь существует */       
+            if ($this->db->query("SELECT * FROM users WHERE id=?", [$parameters['chat_id']])->find()) {
+                /* Проверяем, что другие status не активираны и значение равно NULL*/
+                if ($this->db->query("SELECT * FROM users WHERE id=?", [$parameters['chat_id']])->find()['status'] === 'nothing') {
+                    $this->db->query("UPDATE users SET status=? WHERE id=?", [$status_name, $parameters['chat_id']]);
+
+                    // Перезагрузка кода, выключается в \Edit\EditEstate.php
+                    $GLOBALS['restart_bot'] = true;
+
+                    $status_action($parameters);
+
+                } else {
+                    throw new Exception("Предыдущий status не закончен! Status {$status_name} не может быть установлен");
+                }
+            } else {
+                throw new Exception("Пользователь {$parameters['chat_id']} нет в таблице users!");
+            }
+        } catch (Exception $e) {
+            error_log($e->getMessage() . PHP_EOL, 3, $GLOBALS['paths']['root'] . '/errors.log');
+        }
     }
 
     function showUserEstate($parameters)

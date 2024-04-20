@@ -47,17 +47,23 @@ class AddEstate
             $this->input_or_buy($parameters);
         /* Процесс добавления обьекта, осуществляемый в \Input\InputEstate.php */
         } elseif (str_contains($parameters['message_text'], 'ADD_ESTATE_INPUT_NEW_OBJECT')) {
-            $this->set_status($parameters, 'input');
+            $this->set_status($parameters, 'input', function($parameters) {
+                $this->db->query("INSERT input_estate (user_id, stage) VALUES (?, ?)", [$parameters['chat_id'], "create_ask_name"]);
+
+                $this->telegram->sendMessage([
+                    'chat_id' => $parameters['chat_id'],
+                    'text'=> "Внимание! Вы находитесь в статусе загрузки обьекта. Прочие функции бота недоступны. Для возвращения в обычный режим, пожалуйста, завершите загрузку обьекта!",
+                ]);
+            });
         /* Процесс покупки мест под обьекты, осуществляемый в ... */
         } elseif (str_contains($parameters['message_text'], 'ADD_ESTATE_BUY_OBJECT_PLACES')) {
-            $this->set_status($parameters, 'buy');
+            $this->set_status($parameters, 'buy', function() {
+
+            });
         }
     }
 
-    function handle($parameters)
-    {
-
-    }
+    function handle($parameters) {}
 
     function instruction($parameters)
     {
@@ -94,7 +100,7 @@ class AddEstate
         ]);
     }
 
-    function set_status($parameters, $status)
+    function set_status($parameters, $status_name, $status_action)
     {
         $this->telegram->answerCallbackQuery([
             'show_alert' => true,
@@ -107,16 +113,16 @@ class AddEstate
             if ($this->db->query("SELECT * FROM users WHERE id=?", [$parameters['chat_id']])->find()) {
                 /* Проверяем, что другие status не активираны и значение равно NULL*/
                 if ($this->db->query("SELECT * FROM users WHERE id=?", [$parameters['chat_id']])->find()['status'] === 'nothing') {
-                    $this->db->query("UPDATE users SET status=? WHERE id=?", [$status, $parameters['chat_id']]);
-                    $this->db->query("INSERT input_estate (user_id, stage) VALUES (?, ?)", [$parameters['chat_id'], "create_ask_name"]);
+                    $this->db->query("UPDATE users SET status=? WHERE id=?", [$status_name, $parameters['chat_id']]);
 
-                    $this->telegram->sendMessage([
-                        'chat_id' => $parameters['chat_id'],
-                        'text'=> "Внимание! Вы находитесь в статусе загрузки обьекта. Прочие функции бота недоступны. Для возвращения в обычный режим, пожалуйста, завершите загрузку обьекта!",
-                    ]);
+                    // Перезагрузка кода, выключается в \Input\InputEstate.php
                     $GLOBALS['restart_bot'] = true;
+
+                    // Выполнение callback-функции, специфичной для конкретного статуса
+                    $status_action($parameters);
+
                 } else {
-                    throw new Exception("Предыдущий status не закончен! Status {$status} не может быть установлен");
+                    throw new Exception("Предыдущий status не закончен! Status {$status_name} не может быть установлен");
                 }
             } else {
                 throw new Exception("Пользователь {$parameters['chat_id']} нет в таблице users!");
