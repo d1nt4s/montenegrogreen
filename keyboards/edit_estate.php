@@ -7,6 +7,7 @@ return [
         [['text' => $phrases['edit_estate_change_facility'], 'callback_data' => 'EDIT_ESTATE_CHANGE_FACILITY']], 
         [['text' => $phrases['edit_estate_hide_object'], 'callback_data' => 'EDIT_ESTATE_HIDE_OBJECT']], 
         [['text' => $phrases['edit_estate_delete_object'], 'callback_data' => 'EDIT_ESTATE_DELETE_OBJECT']],
+        [['text' => $phrases['edit_estate_close_status'], 'callback_data' => 'EDIT_ESTATE_CLOSE_STATUS']],
     ],
 ],
 

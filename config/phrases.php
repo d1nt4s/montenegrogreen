@@ -55,6 +55,7 @@ return [
     'edit_estate_change_facility' => "Изменить характеристику обьекта",
     'edit_estate_hide_object' => "Скрыть обьект с витрины",
     'edit_estate_delete_object' => "Удалить обьект",
+    'edit_estate_close_status' => "Завершить редактирование обьекта",
 
     'edit_estate_change_name' => "Имя обьекта",
     'edit_estate_change_type' => "Тип обьекта",

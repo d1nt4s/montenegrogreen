@@ -62,24 +62,25 @@ do {
         $status_manager->addStatusHandler($input_estate);
         $status_manager->addStatusHandler($edit_estate);
         $status_manager->startStatusHandler($update);
-        die;
+        // die;
+    } else {
+
+
+        // Создаем менеджер обработчиков сообщений и коллбэков
+        $chain = new MessageHandlerChain();
+
+        // Создаем обработчики
+        $start = new Start($telegram);
+        $add_estate = new AddEstate($telegram, $db);
+        $filtration = new Filtration($telegram, $db);
+        $manage_estate = new ManageEstate($telegram, $db);
+
+        $chain->add_handler($start);
+        $chain->add_handler($filtration);
+        $chain->add_handler($add_estate);
+        $chain->add_handler($manage_estate);
+
+        $chain->process_message($update);
     }
-
-
-    // Создаем менеджер обработчиков сообщений и коллбэков
-    $chain = new MessageHandlerChain();
-
-    // Создаем обработчики
-    $start = new Start($telegram);
-    $add_estate = new AddEstate($telegram, $db);
-    $filtration = new Filtration($telegram, $db);
-    $manage_estate = new ManageEstate($telegram, $db);
-
-    $chain->add_handler($start);
-    $chain->add_handler($filtration);
-    $chain->add_handler($add_estate);
-    $chain->add_handler($manage_estate);
-
-    $chain->process_message($update);
 
 } while ($GLOBALS['restart_bot'] == true);

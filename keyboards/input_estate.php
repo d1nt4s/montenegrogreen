@@ -4,11 +4,11 @@ return [
 
 'entering_object_type' => [
     'inline_keyboard' => [
-        [ ['text' => $phrases['type_house'], 'callback_data' => 'type_house']], 
+        [['text' => $phrases['type_house'], 'callback_data' => 'type_house']], 
         [['text' => $phrases['type_flat'], 'callback_data' => 'type_flat']],
         [['text' => $phrases['type_hotel'], 'callback_data' => 'type_hotel']], 
         [['text' => $phrases['type_land'], 'callback_data' => 'type_land']], 
-        [['text' => $phrases['type_commercy'], 'callback_data' => 'type_commercy'] ],
+        [['text' => $phrases['type_commercy'], 'callback_data' => 'type_commercy']],
         // [['text' => $phrases['add_object_continue'], 'callback_data' => '78771_continue'] ],
     ],
 ],
@@ -34,7 +34,7 @@ return [
     'inline_keyboard' => [
         [['text' => "Пропустить", 'callback_data' => 'skip_facility']], 
     ],
-]
+],
 
 
 ];
